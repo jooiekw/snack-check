@@ -1,4 +1,4 @@
-# Version: 1.0.0
+# Version: 1.1.0
 # Last Updated: 2025-12-29
 # Author: Jooie Kwon
 import streamlit as st
