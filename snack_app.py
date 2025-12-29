@@ -143,6 +143,59 @@ def main():
             )
 
 
+
+    # --- [커스텀 CSS] (모바일 최적화) ---
+    st.markdown("""
+    <style>
+    /* 기본 리스트 아이템 스타일 */
+    .snack-item {
+        display: flex; 
+        align-items: center; 
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .snack-emoji {
+        font-size: 40px; 
+        min-width: 60px; 
+        text-align: center;
+        margin-right: 15px;
+    }
+    .snack-info {
+        flex-grow: 1;
+    }
+    .snack-title {
+        font-size: 18px; 
+        font-weight: bold; 
+        margin-bottom: 2px;
+        line-height: 1.3;
+    }
+    .snack-meta {
+        font-size: 13px; 
+        color: #666; 
+        margin-bottom: 4px;
+    }
+    .snack-badges {
+        font-size: 0.85em;
+        line-height: 1.6;
+    }
+
+    /* 모바일용 미디어 쿼리 (화면 폭 600px 이하) */
+    @media (max-width: 600px) {
+        .snack-emoji {
+            font-size: 28px !important;  /* 이모지 크기 축소 */
+            min-width: 45px !important;
+            margin-right: 10px !important;
+        }
+        .snack-title {
+            font-size: 16px !important;  /* 제목 크기 축소 */
+        }
+        .snack-meta {
+            font-size: 12px !important;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     # --- [필터링 로직] ---
     filtered_df = df.copy()
 
@@ -178,7 +231,7 @@ def main():
     # --- [정렬 로직] ---
     # na_position='last' 로 정보 없음(NaN) 데이터를 항상 뒤로 보냄
     if sort_option == "랜덤 추천순":
-        filtered_df = filtered_df.sample(frac=1, random_state=42)
+        filtered_df = filtered_df.sample(frac=1)
     elif sort_option == "가나다순":
         filtered_df = filtered_df.sort_values(by="PRDLST_NM")
     elif sort_option == "제조사순":
@@ -245,35 +298,38 @@ def main():
                 found_sweeteners = [k for k in SWEETENERS if k in raw_materials]
 
                 with st.container():
-                    c_img, c_info = st.columns([1, 6])
+                    # [Mobile Optimized Layout] -> Flexbox 사용 (HTML/CSS)
+                    display_cat = CATEGORY_DISPLAY_MAP.get(category, category)
+                    emoji = display_cat[0] if display_cat[0] in ["🍪", "🍟", "🍬", "🍫", "🍜", "🍞", "🧀", "🥤", "🍡", "🐟"] else "🍴"
                     
-                    with c_img:
-                        display_cat = CATEGORY_DISPLAY_MAP.get(category, category)
-                        emoji = display_cat[0] if display_cat[0] in ["🍪", "🍟", "🍬", "🍫", "🍜", "🍞", "🧀", "🥤", "🍡", "🐟"] else "🍴"
-                        st.markdown(f"<div style='font-size:45px; text-align:center; padding-top:5px;'>{emoji}</div>", unsafe_allow_html=True)
-                    
-                    with c_info:
-                        st.subheader(name)
-                        st.caption(f"{CATEGORY_DISPLAY_MAP.get(category, category)} | {maker}")
-                        
-                        badges = []
-                        
-                        # [NEW] 영양성분 뱃지
-                        if has_nutrition:
-                            badges.append(f"🔥 <b>{int(cal)} kcal</b> <span style='font-size:0.8em; color:#666;'>({desc})</span>")
-                        else:
-                            # 정보 없음 뱃지 (회색)
-                            badges.append(f"<span style='background-color:#eee; color:#888; padding:2px 6px; border-radius:4px; font-size:0.85em;'>⚪ 공공데이터 정보 없음</span>")
+                    badges_html_list = []
+                    # [NEW] 영양성분 뱃지
+                    if has_nutrition:
+                        badges_html_list.append(f"🔥 <b>{int(cal)} kcal</b> <span style='font-size:0.9em; color:#666;'>({desc})</span>")
+                    else:
+                        # 정보 없음 뱃지 (회색)
+                        badges_html_list.append(f"<span style='background-color:#eee; color:#888; padding:2px 6px; border-radius:4px;'>⚪ 공공데이터 정보 없음</span>")
 
-                        # 알레르기/주의 뱃지
-                        if found_allergens:
-                            badges.append(f"🚨 <b>알레르기:</b> <span style='color:#d63031'>{', '.join(found_allergens)}</span>")
-                        if found_warnings:
-                            badges.append(f"⚠️ <b>주의성분:</b> <span style='color:#e17055'>{', '.join(found_warnings)}</span>")
-                        if found_sweeteners:
-                            badges.append(f"🍬 <b>대체당(주의) ⚠️:</b> <span style='color:#0984e3'>{', '.join(found_sweeteners)}</span>")
-                        
-                        st.markdown(" | ".join(badges), unsafe_allow_html=True)
+                    # 알레르기/주의 뱃지
+                    if found_allergens:
+                        badges_html_list.append(f"🚨 <b>알레르기:</b> <span style='color:#d63031'>{', '.join(found_allergens)}</span>")
+                    if found_warnings:
+                        badges_html_list.append(f"⚠️ <b>주의성분:</b> <span style='color:#e17055'>{', '.join(found_warnings)}</span>")
+                    if found_sweeteners:
+                        badges_html_list.append(f"🍬 <b>대체당(주의) ⚠️:</b> <span style='color:#0984e3'>{', '.join(found_sweeteners)}</span>")
+                    
+                    badges_str = " | ".join(badges_html_list)
+
+                    st.markdown(f"""
+                    <div class="snack-item">
+                        <div class="snack-emoji">{emoji}</div>
+                        <div class="snack-info">
+                            <div class="snack-title">{name}</div>
+                            <div class="snack-meta">{display_cat} | {maker}</div>
+                            <div class="snack-badges">{badges_str}</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
                     # Expander
                     with st.expander(f"📝 '{name}' 원재료 및 영양정보 보기"):
