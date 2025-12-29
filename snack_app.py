@@ -12,7 +12,7 @@ from datetime import datetime
 # ==========================================
 # 1. 설정 및 상수 정의
 # ==========================================
-st.set_page_config(page_title="Snack Check", page_icon="🔍", layout="wide")
+st.set_page_config(page_title="Snack Check", page_icon="🔍", layout="centered")
 
 ALLERGENS = [
     "밀", "대두", "우유", "계란", "새우", "땅콩", "쇠고기", "돼지고기", "토마토", "게", "조개", "오징어",
