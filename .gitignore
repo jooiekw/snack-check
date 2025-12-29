@@ -5,3 +5,10 @@ __pycache__/
 nutrition_dump.csv
 venv/
 .env
+
+# Dev Scripts & Data
+fetch_*.py
+init_db.py
+merge_*.py
+probe_api.py
+*.csv
